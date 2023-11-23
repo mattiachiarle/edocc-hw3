@@ -1,41 +1,18 @@
-import Main.getClass
-import NetGraphAlgebraDefs.NodeObject
+package Client
+
+import Server._
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.javadsl.Behaviors
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
-import spray.json.{DefaultJsonProtocol, RootJsonFormat, enrichAny}
+import spray.json.enrichAny
 
 import scala.concurrent.Await
-import scala.concurrent.duration.{Duration, DurationInt}
+import scala.concurrent.duration.Duration
 import scala.sys.exit
-import scala.util.{Failure, Success}
-
-//case class NodePosition(policeman_node: NodeObject, policeman_confidence: Float, policeman_neighbors: List[NodeObject], thief_node: NodeObject, thief_confidence: Float, thief_neighbors: List[NodeObject])
-//case class ValuableDistance(distance: Int)
-//case class Move(next: Int)
-//
-//trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-//  implicit val nodeObjectFormat: RootJsonFormat[NodeObject] = jsonFormat(
-//    NodeObject.apply,
-//    "id",
-//    "children",
-//    "props",
-//    "currentDepth",
-//    "propValueRange",
-//    "maxDepth",
-//    "maxBranchingFactor",
-//    "maxProperties",
-//    "storedValue",
-//    "valuableData"
-//  )
-//  implicit val positionFormat: RootJsonFormat[NodePosition] = jsonFormat6(NodePosition.apply)
-//  implicit val valuableDistanceFormat: RootJsonFormat[ValuableDistance] = jsonFormat1(ValuableDistance.apply)
-//  implicit val moveFormat: RootJsonFormat[Move] = jsonFormat1(Move.apply)
-//}
 
 object GameClient extends App with JsonSupport {
   implicit val system = ActorSystem(Behaviors.empty, "SingleRequest")
@@ -45,15 +22,18 @@ object GameClient extends App with JsonSupport {
   var valuableDistance = 0
   var move = -1
   private val rand = new scala.util.Random
+  val config = ConfigFactory.load()
+  val url = config.getString("Server.address")
 
-  val gameRequest = Http().singleRequest(HttpRequest(uri = "http://localhost:9090/api/game"))
+
+  val gameRequest = Http().singleRequest(HttpRequest(uri = s"$url/api/game"))
   val gameResponse = Await.result(gameRequest, Duration.Inf) // Blocking to get the game response synchronously
 
   gameResponse.status match {
     case StatusCodes.OK =>
       // The game is active
       while (true) {
-        val statusRequest = Http().singleRequest(HttpRequest(uri = "http://localhost:9090/api/status"))
+        val statusRequest = Http().singleRequest(HttpRequest(uri = s"$url/api/status"))
         val statusResponse = Await.result(statusRequest, Duration.Inf) // Blocking to get the status response synchronously
 
         val continue = checkWinner(statusResponse)
@@ -64,7 +44,7 @@ object GameClient extends App with JsonSupport {
         move = -1
 
         if (turn == "thief") {
-          val distanceRequest = Http().singleRequest(HttpRequest(uri = "http://localhost:9090/api/thief/valuableDistance"))
+          val distanceRequest = Http().singleRequest(HttpRequest(uri = s"$url/api/thief/valuableDistance"))
           val distanceResponse = Await.result(distanceRequest, Duration.Inf)
 
           val continue = Await.result(Unmarshal(distanceResponse).to[ValuableDistance], Duration.Inf)
@@ -76,7 +56,7 @@ object GameClient extends App with JsonSupport {
           logger.info(s"Valuable distance: $valuableDistance")
         }
 
-        val neighborsRequest = Http().singleRequest(HttpRequest(uri = s"http://localhost:9090/api/nodes"))
+        val neighborsRequest = Http().singleRequest(HttpRequest(uri = s"$url/api/nodes"))
         val neighborsResponse = Await.result(neighborsRequest, Duration.Inf)
 
         val situation = Await.result(Unmarshal(neighborsResponse).to[NodePosition], Duration.Inf)
@@ -118,7 +98,7 @@ object GameClient extends App with JsonSupport {
         val moveParameter = Move(move)
         val moveRequest = HttpRequest(
           method = HttpMethods.POST,
-          uri = s"http://localhost:9090/api/$turn/move",
+          uri = s"$url/api/$turn/move",
           entity = HttpEntity(ContentTypes.`application/json`, moveParameter.toJson.toString)
         )
         val moveResponse = Await.result(Http().singleRequest(moveRequest), Duration.Inf)

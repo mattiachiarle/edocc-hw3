@@ -1,9 +1,11 @@
-import GameServer.getClass
+package Game
+
 import NetGraphAlgebraDefs._
+import Server.{NodePosition, ValuableDistance}
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
-import scala.collection.convert.ImplicitConversions.{`collection AsScalaIterable`, `set asScala`}
+import scala.collection.convert.ImplicitConversions.`set asScala`
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
