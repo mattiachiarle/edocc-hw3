@@ -92,7 +92,7 @@ object GameServer extends App with JsonSupport{
       }
     })
 
-  val server = Http().newServerAt("localhost", 9090).bind(route)
+  val server = Http().newServerAt("0.0.0.0", 9090).bind(route)
   server.map { _ =>
     logger.info("Successfully started on localhost:9090 ")
   } recover { case ex =>
