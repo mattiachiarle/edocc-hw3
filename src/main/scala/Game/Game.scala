@@ -67,7 +67,7 @@ class Game {
     0
   }
 
-  def getNodes: NodePosition = {
+  def getNodes(): NodePosition = {
     val original_policeman = original.sm.successors(policeman)
     var policeman_confidence = 0
     val policeman_neighbors : ArrayBuffer[NodeObject] = mutable.ArrayBuffer[NodeObject]()
