@@ -2,8 +2,8 @@ package Game
 
 import NetGraphAlgebraDefs._
 import Server.{NodePosition, ValuableDistance}
-import com.typesafe.config.ConfigFactory
-import org.slf4j.LoggerFactory
+import com.typesafe.config.{Config, ConfigFactory}
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.convert.ImplicitConversions.`set asScala`
 import scala.collection.mutable
@@ -11,14 +11,14 @@ import scala.collection.mutable.ArrayBuffer
 
 class Game {
 
-  val config = ConfigFactory.load()
+  val config: Config = ConfigFactory.load()
 
-  val logger = LoggerFactory.getLogger(getClass)
+  val logger: Logger = LoggerFactory.getLogger(getClass)
 
   logger.debug("Loading the graphs...")
 
-  private val original : NetGraph = NetGraph.load(config.getString("Graphs.fileName"),"./").get
-  private val perturbed : NetGraph = NetGraph.load(s"${config.getString("Graphs.fileName")}.perturbed","./").get
+  private val original : NetGraph = NetGraph.load(config.getString("Graphs.fileName"),config.getString("Graphs.dir")).get
+  private val perturbed : NetGraph = NetGraph.load(s"${config.getString("Graphs.fileName")}.perturbed",config.getString("Graphs.dir")).get
 
   logger.debug("Graph load completed")
 
@@ -67,7 +67,7 @@ class Game {
     0
   }
 
-  def getNodes() : NodePosition = {
+  def getNodes: NodePosition = {
     val original_policeman = original.sm.successors(policeman)
     var policeman_confidence = 0
     val policeman_neighbors : ArrayBuffer[NodeObject] = mutable.ArrayBuffer[NodeObject]()
