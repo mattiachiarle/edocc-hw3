@@ -22,46 +22,20 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 lazy val commonDependencies = Seq(
   "org.scala-lang.modules" %% "scala-parallel-collections" % scalaParCollVersion,
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-//  "org.scalatestplus" %% "mockito-4-2" % "3.2.12.0-RC2" % Test,
   "com.typesafe" % "config" % typeSafeConfigVersion,
   "ch.qos.logback" % "logback-classic" % logbackVersion,
   "net.bytebuddy" % "byte-buddy" % netBuddyVersion,
   "io.circe" %% "circe-core" % "0.14.5",
   "io.circe" %% "circe-generic" % "0.14.5",
   "io.circe" %% "circe-parser" % "0.14.5",
-//  "org.typelevel" %% "cats-effect" % "1.4.0",
-//  "org.typelevel" %% "cats-core" % "1.6.1",
   "org.typelevel" %% "jawn-parser" % "1.4.0",
   "ch.qos.logback" % "logback-classic" % "1.4.7",
-//  "org.yaml" % "snakeyaml" % "2.0"
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
   "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
   "io.spray" %% "spray-json" % "1.3.6",
-//  "de.heikoseeberger" %% "akka-http-jackson" % "1.39.2"
 )
-
-//lazy val GenericSimUtilities = (project in file("GenericSimUtilities"))
-//  .settings(
-//    scalaVersion := "3.2.2",
-//    name := "GenericSimUtilities",
-//    libraryDependencies ++= commonDependencies
-//  )
-//
-//lazy val NetModelGenerator = (project in file("NetModelGenerator"))
-//  .settings(
-//    scalaVersion := "3.2.2",
-//    name := "NetModelGenerator",
-//    libraryDependencies ++= commonDependencies ++ Seq(
-//      "com.google.guava" % "guava" % guavaVersion,
-//      "guru.nidi" % "graphviz-java" % graphVizVersion,
-//      "org.typelevel" %% "cats-core" % catsVersion,
-//      "commons-io" % "commons-io" % apacheCommonsVersion,
-//      "org.jgrapht" % "jgrapht-core" % jGraphTlibVersion,
-//      "org.jgrapht" % "jgrapht-guava" % guavaAdapter2jGraphtVersion,
-//    )
-//  ).dependsOn(GenericSimUtilities)
 
 fork := true
 

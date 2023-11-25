@@ -14,13 +14,13 @@ object GameServer extends App with JsonSupport {
   private var game: Game = _
   val logger = LoggerFactory.getLogger(getClass)
 
-  implicit val system = ActorSystem("GameServer")
+  implicit val system: ActorSystem = ActorSystem("GameServer")
   val route = concat(
     get {
       pathPrefix("api" / "game") {
         logger.info("Creating new game...")
         game = new Game()
-        logger.info("Game.Game created!")
+        logger.info("Game created!")
         complete(StatusCodes.OK)
       }
     },

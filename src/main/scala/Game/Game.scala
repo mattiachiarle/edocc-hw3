@@ -17,7 +17,7 @@ class Game {
 
   logger.debug("Loading the graphs...")
 
-  private val original : NetGraph = NetGraph.load(config.getString("Graphs.fileName"),config.getString("Graphs.dir")).get
+  private val original : NetGraph = NetGraph.load(config.getString("Graphs.fileName"),config.getString("Graphs.dir")).get //Get is used to directly obtain the graph instead of Option
   private val perturbed : NetGraph = NetGraph.load(s"${config.getString("Graphs.fileName")}.perturbed",config.getString("Graphs.dir")).get
 
   logger.debug("Graph load completed")
@@ -29,7 +29,7 @@ class Game {
 
   private var policemanId : Int = -1
 
-  while(!perturbedId.contains(policemanId)){
+  while(!perturbedId.contains(policemanId)){  //We place the policeman on a node that's present in both the original and perturbed graph
     policemanId = rand.nextInt(originalLength)
   }
 
@@ -46,12 +46,16 @@ class Game {
   var policeman : NodeObject = original.sm.nodes().filter(_.id == policemanId).head
   var thief : NodeObject = original.sm.nodes().filter(_.id == thiefId).head
 
+  /**
+   * Function to check if someone won
+   * @return 0 if nobody won, 1 if the policeman won, 2 if the thief won
+   */
   def checkWinner(): Int = {
-    if(policeman == null){
+    if(policeman == null){ //The policeman made an illegal move
       logger.info("The policeman is null")
       return 2
     }
-    if(thief==null){
+    if(thief==null) { //The thief made an illegal move
       logger.info("The thief is null")
       return 1
     }
@@ -71,18 +75,19 @@ class Game {
     val original_policeman = original.sm.successors(policeman)
     var policeman_confidence = 0
     val policeman_neighbors : ArrayBuffer[NodeObject] = mutable.ArrayBuffer[NodeObject]()
-//    perturbed.sm.predecessors(policeman).forEach(n => {
-//      if(original_policeman.contains(n)){
-//        policeman_confidence += 1
-//      }
-//      policeman_neighbors += n
-//    })
-    val perturbed_policeman = perturbed.sm.nodes().filter(n => n.id == policeman.id).head
+    //Uncomment it to include also the predecessors
+    /*perturbed.sm.predecessors(policeman).forEach(n => {
+      if(original_policeman.contains(n)){
+        policeman_confidence += 1
+      }
+      policeman_neighbors += n
+    })*/
+    val perturbed_policeman = perturbed.sm.nodes().filter(n => n.id == policeman.id).head //We must retrieve it in this way since the perturbed node could be different even if it has the same id
     val perturbed_thief = perturbed.sm.nodes().filter(n => n.id == thief.id).head
 
     perturbed.sm.successors(perturbed_policeman).forEach(n => {
       if (original_policeman.contains(n)) {
-        logger.info(s"The policeman's neighbor ${n.id} exists also in the original graph")
+        logger.debug(s"The policeman's neighbor ${n.id} exists also in the original graph")
         policeman_confidence += 1
       }
       policeman_neighbors += n
@@ -91,15 +96,16 @@ class Game {
     val original_thief = original.sm.successors(thief)
     var thief_confidence = 0
     val thief_neighbors: ArrayBuffer[NodeObject] = mutable.ArrayBuffer[NodeObject]()
-//    perturbed.sm.predecessors(thief).forEach(n => {
-//      if (original_thief.contains(n)) {
-//        thief_confidence += 1
-//      }
-//      thief_neighbors += n
-//    })
+    //Uncomment it to include also the predecessors
+    /*perturbed.sm.predecessors(thief).forEach(n => {
+      if (original_thief.contains(n)) {
+        thief_confidence += 1
+      }
+      thief_neighbors += n
+    })*/
     perturbed.sm.successors(perturbed_thief).forEach(n => {
       if (original_thief.contains(n)) {
-        logger.info(s"The thief's neighbor ${n.id} exists also in the original graph")
+        logger.debug(s"The thief's neighbor ${n.id} exists also in the original graph")
         thief_confidence += 1
       }
       thief_neighbors += n
@@ -109,6 +115,11 @@ class Game {
      thief, thief_confidence.toFloat/thief_neighbors.size.toFloat,thief_neighbors.toList)
   }
 
+  /**
+   * Get the distance from a valuable node
+   * @param role either the policeman or the thief, i.e. for whom we perform the check
+   * @return -1 if there's no valuable node reachable, the distance otherwise
+   */
   def getValuableDistance(role: String): ValuableDistance = {
     var node : NodeObject = null
     if(role == "policeman"){
@@ -129,10 +140,10 @@ class Game {
         }
         val succ = perturbed.sm.successors(n)
         if(succ != null) {
-          tmp = tmp.union(succ)
+          tmp = tmp.union(succ) //We perform the union of all successors, that will be used in the next iteration
         }
       })
-      if(tmp.isEmpty){
+      if(tmp.isEmpty){ //There's not successor available
         logger.warn(s"The $role can't reach any valuable node!")
         return ValuableDistance(-1)
       }
@@ -142,6 +153,11 @@ class Game {
     ValuableDistance(-1)
   }
 
+  /**
+   * Function used to perform a move
+   * @param role who's performing the move
+   * @param next the id of the next step
+   */
   def makeMove(role: String, next: Int): Unit = {
     var node : NodeObject = null
     if (role == "policeman") {
@@ -152,7 +168,7 @@ class Game {
     }
 
     val successors = original.sm.successors(node).map(n => n.id)
-    if(successors.contains(next)){
+    if(successors.contains(next)){ //We update the variable
       node = original.sm.nodes().filter(n => n.id == next).head
       if (role == "policeman") {
         policeman = node
@@ -161,7 +177,7 @@ class Game {
         thief = node
       }
     }
-    else{
+    else{ //Illegal move, so we assign to the node null
       logger.error(s"Illegal mode for the $role!")
       if (role == "policeman") {
         policeman = null
